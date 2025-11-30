@@ -1,0 +1,21 @@
+factors:
+  - desc: playerCount determines the number of Players are in a Game.
+    name: playerCount
+    values:
+      - value: 1
+  - desc: teachBack determines whether participants will teach the material back.
+    name: teachBack
+    values:
+      - value: true
+      - value: false
+treatments:
+  - desc: "With Teaching Back - participants teach the material back"
+    factors:
+      playerCount: 1
+      teachBack: true
+    name: With Teaching Back
+  - desc: "Without Teaching Back - participants only learn, no teaching back"
+    factors:
+      playerCount: 1
+      teachBack: false
+    name: Without Teaching Back

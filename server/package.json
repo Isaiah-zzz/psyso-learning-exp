@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "@empirica/core": "1.12.5",
+    "@google/generative-ai": "^0.21.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "minimist": "1.2.6"
+  },
+  "devDependencies": {
+    "esbuild": "0.14.47"
+  },
+  "name": "empirica-server",
+  "private": true,
+  "scripts": {
+    "build": "rsync -aP --exclude=node_modules --exclude=*.js -m src/* dist/ && esbuild src/index.js --color=true --log-level=warning --log-level=warning --platform=node --define:process.env.NODE_ENV='\"production\"' --bundle --minify --outfile=dist/index.js --sourcemap",
+    "dev": "npm run build && node --trace-warnings --enable-source-maps --unhandled-rejections=warn-with-error-code dist/index.js",
+    "serve": "node --trace-warnings --enable-source-maps --unhandled-rejections=warn-with-error-code index.js",
+    "api": "node --trace-warnings src/api-server.js"
+  },
+  "volta": {
+    "node": "20.11.1",
+    "npm": "10.2.4"
+  }
+}
