@@ -1,7 +1,5 @@
 # psyso-learning-exp
 
-Learning by Teaching Experiment - Empirica Implementation
-
 ## Setup
 
 1. Install dependencies:
