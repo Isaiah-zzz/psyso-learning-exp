@@ -1,6 +1,5 @@
 # API Keys
 client/src/config/api-key.js
-server/src/config/api-key.js
 
 # Dependencies
 node_modules/

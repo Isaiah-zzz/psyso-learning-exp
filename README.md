@@ -10,20 +10,12 @@ Learning by Teaching Experiment - Empirica Implementation
    cd ../server && npm install
    ```
 
-2. Configure API keys:
-   - Copy `client/src/config/api-key.example.js` to `client/src/config/api-key.js` and add your Gemini API key
-   - Copy `server/src/config/api-key.example.js` to `server/src/config/api-key.js` and add your Gemini API key
+2. API keys:
+   - Copy `api-key.js` to `client/src/config/api-key.js`
 
 3. Start the servers:
    ```bash
-   # Terminal 1: API Server
-   cd server && npm run api
-   
-   # Terminal 2: Empirica Server
-   cd server && npm run dev
-   
-   # Terminal 3: Client
-   cd client && npm run dev
+   empirica
    ```
 
 ## Experiment Structure
@@ -34,8 +26,8 @@ Learning by Teaching Experiment - Empirica Implementation
 - **Quiz**: Multiple choice comprehension test
 - **Exit Survey**: Post-experiment survey
 
-## Treatments
+## Treatments - config in admin page
 
-- `teachBack: true` - Participants teach the material back
-- `teachBack: false` - Participants only learn, no teaching back
+- `with teachback` - Participants teach the material back
+- `without teachback` - Participants only learn, no teaching back
 
