@@ -18,6 +18,12 @@ Learning by Teaching Experiment - Empirica Implementation
    empirica
    ```
 
+4. Export data:
+   ```bash
+   empirica export
+   ```
+
+
 ## Experiment Structure
 
 - **Debrief**: Introduction to the experiment
