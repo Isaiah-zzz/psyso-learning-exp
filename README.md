@@ -15,6 +15,9 @@
    ```bash
    empirica
    ```
+4. Go to /admin to start experiments, config treatments (with teachback and without)
+
+5. Go to player (3000) page for the actual experiments after starting
 
 4. Export data:
    ```bash
