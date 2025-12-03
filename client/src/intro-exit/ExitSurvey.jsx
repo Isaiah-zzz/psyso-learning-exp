@@ -3,203 +3,187 @@ import React, { useState } from "react";
 import { Alert } from "../components/Alert";
 import { Button } from "../components/Button";
 
+const ratingQuestions = [
+  "I felt the subject matter was difficult.",
+  "I enjoyed learning about the Doppler Effect.",
+  "I would like to learn this way in the future.",
+  "I feel like I have a good understanding of how the Doppler Effect works.",
+  "After this lesson, I would be interested in learning more about the Doppler Effect.",
+  "I found the lesson about the Doppler Effect to be useful to me.",
+  "I felt stressed while I was learning about the Doppler Effect.",
+];
+
 export function ExitSurvey({ next }) {
   const labelClassName = "block text-sm font-medium text-gray-700 my-2";
   const inputClassName =
     "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm";
   const player = usePlayer();
 
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("");
-  const [strength, setStrength] = useState("");
-  const [fair, setFair] = useState("");
-  const [feedback, setFeedback] = useState("");
-  const [education, setEducation] = useState("");
+  const [ratings, setRatings] = useState({});
+  const [mentalEffort, setMentalEffort] = useState("");
+  const [comments, setComments] = useState("");
 
-  function handleSubmit(event) {
+  const handleRatingChange = (questionIndex, value) => {
+    setRatings((prev) => ({
+      ...prev,
+      [questionIndex]: value,
+    }));
+  };
+
+  const handleSubmit = (event) => {
     event.preventDefault();
-    player.set("exitSurvey", {
-      age,
-      gender,
-      strength,
-      fair,
-      feedback,
-      education,
+    
+    // Validate all ratings are filled
+    const allRated = ratingQuestions.every((_, index) => ratings[index] !== undefined && ratings[index] !== "");
+    if (!allRated) {
+      alert("Please provide a rating for all statements in Part 1.");
+      return;
+    }
+    
+    if (!mentalEffort || mentalEffort === "") {
+      alert("Please provide a mental effort rating in Part 2.");
+      return;
+    }
+    
+    // Convert mental effort to number
+    const mentalEffortNum = mentalEffort ? parseInt(mentalEffort, 10) : null;
+    
+    // Convert ratings to numbers
+    const ratingsNum = {};
+    Object.keys(ratings).forEach((key) => {
+      ratingsNum[key] = parseInt(ratings[key], 10);
     });
-    next();
-  }
+    
+    // Save all survey data
+    const surveyData = {
+      part1_ratings: ratingsNum,
+      part2_mentalEffort: mentalEffortNum,
+      part3_comments: comments || "None",
+    };
 
-  function handleEducationChange(e) {
-    setEducation(e.target.value);
-  }
+    // Save to player
+    player.set("exitSurvey", surveyData);
+    player.set("exitSurveyPart1Ratings", ratingsNum);
+    player.set("exitSurveyPart2MentalEffort", mentalEffortNum);
+    player.set("exitSurveyPart3Comments", comments || "None");
+    player.set("exitSurveyCompleted", true);
+
+    next();
+  };
 
   return (
     <div className="py-8 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <Alert title="Bonus">
-        <p>
-          Please submit the following code to receive your bonus:{" "}
-          <strong>{player.id}</strong>.
-        </p>
-        <p className="pt-1">
-          Your final <strong>bonus</strong> is in addition of the{" "}
-          <strong>1 base reward</strong> for completing the HIT.
-        </p>
-      </Alert>
 
       <form
-        className="mt-12 space-y-8 divide-y divide-gray-200"
+        className="mt-12 space-y-12"
         onSubmit={handleSubmit}
       >
-        <div className="space-y-8 divide-y divide-gray-200">
+        {/* Part 1: Ratings */}
+        <div className="space-y-6 border-b border-gray-200 pb-8">
           <div>
-            <div>
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Exit Survey
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Please answer the following short survey. You do not have to
-                provide any information you feel uncomfortable with.
-              </p>
-            </div>
-
-            <div className="space-y-8 mt-6">
-              <div className="flex flex-row">
-                <div>
-                  <label htmlFor="email" className={labelClassName}>
-                    Age
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="age"
-                      name="age"
-                      type="number"
-                      autoComplete="off"
-                      className={inputClassName}
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="ml-5">
-                  <label htmlFor="email" className={labelClassName}>
-                    Gender
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="gender"
-                      name="gender"
-                      autoComplete="off"
-                      className={inputClassName}
-                      value={gender}
-                      onChange={(e) => setGender(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className={labelClassName}>
-                  Highest Education Qualification
-                </label>
-                <div className="grid gap-2">
-                  <Radio
-                    selected={education}
-                    name="education"
-                    value="high-school"
-                    label="High School"
-                    onChange={handleEducationChange}
-                  />
-                  <Radio
-                    selected={education}
-                    name="education"
-                    value="bachelor"
-                    label="US Bachelor's Degree"
-                    onChange={handleEducationChange}
-                  />
-                  <Radio
-                    selected={education}
-                    name="education"
-                    value="master"
-                    label="Master's or higher"
-                    onChange={handleEducationChange}
-                  />
-                  <Radio
-                    selected={education}
-                    name="education"
-                    value="other"
-                    label="Other"
-                    onChange={handleEducationChange}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-x-6 gap-y-3">
-                <label className={labelClassName}>
-                  How would you describe your strength in the game?
-                </label>
-
-                <label className={labelClassName}>
-                  Do you feel the pay was fair?
-                </label>
-
-                <label className={labelClassName}>
-                  Feedback, including problems you encountered.
-                </label>
-
-                <textarea
-                  className={inputClassName}
-                  dir="auto"
-                  id="strength"
-                  name="strength"
-                  rows={4}
-                  value={strength}
-                  onChange={(e) => setStrength(e.target.value)}
-                />
-
-                <textarea
-                  className={inputClassName}
-                  dir="auto"
-                  id="fair"
-                  name="fair"
-                  rows={4}
-                  value={fair}
-                  onChange={(e) => setFair(e.target.value)}
-                />
-
-                <textarea
-                  className={inputClassName}
-                  dir="auto"
-                  id="feedback"
-                  name="feedback"
-                  rows={4}
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                />
-              </div>
-
-              <div className="mb-12">
-                <Button type="submit">Submit</Button>
-              </div>
-            </div>
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-2">
+              Post-Experiment Questionnaire (Part 1 of 3)
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Please rate how much you agree with the following statements on a scale from <strong>1 (Strongly Disagree)</strong> to <strong>7 (Strongly Agree)</strong>.
+            </p>
           </div>
+
+          <div className="space-y-6">
+            {ratingQuestions.map((question, index) => (
+              <div key={index} className="border-b border-gray-100 pb-4">
+                <label className={labelClassName}>
+                  {index + 1}. {question}
+                </label>
+                <div className="flex gap-4 mt-2">
+                  {[1, 2, 3, 4, 5, 6, 7].map((value) => (
+                    <label key={value} className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name={`rating-${index}`}
+                        value={value}
+                        checked={ratings[index] === value}
+                        onChange={() => handleRatingChange(index, value)}
+                        className="mr-1 h-4 w-4 text-empirica-600 focus:ring-empirica-500"
+                        required
+                      />
+                      <span className="text-sm text-gray-700 ml-1">{value}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Part 2: Mental Effort */}
+        <div className="space-y-6 border-b border-gray-200 pb-8">
+          <div>
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-2">
+              Post-Experiment Questionnaire (Part 2 of 3)
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              On a scale from <strong>1 (Very low effort)</strong> to <strong>7 (Very high effort)</strong>:
+            </p>
+            <p className="text-sm font-medium text-gray-700 mb-4">
+              How much mental effort did you invest while learning about the Doppler Effect?
+            </p>
+            <p className="text-xs text-gray-500 mb-4">
+              (Please reply with a single number.)
+            </p>
+          </div>
+
+          <div className="flex gap-4">
+            {[1, 2, 3, 4, 5, 6, 7].map((value) => (
+              <label key={value} className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="mentalEffort"
+                  value={value}
+                  checked={mentalEffort === value.toString()}
+                  onChange={(e) => setMentalEffort(e.target.value)}
+                  className="mr-1 h-4 w-4 text-empirica-600 focus:ring-empirica-500"
+                  required
+                />
+                <span className="text-sm text-gray-700 ml-1">{value}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Part 3: Comments */}
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-2">
+              Post-Experiment Questionnaire (Part 3 of 3)
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Please write any additional comments you have about the study. If you have none, type 'None'.
+            </p>
+          </div>
+
+          <div>
+            <label className={labelClassName}>
+              Comments:
+            </label>
+            <textarea
+              className={inputClassName}
+              dir="auto"
+              id="comments"
+              name="comments"
+              rows={6}
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              placeholder="Type your comments here, or 'None' if you have no comments..."
+            />
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <div className="flex justify-end mt-8">
+          <Button type="submit">Submit Survey</Button>
         </div>
       </form>
     </div>
-  );
-}
-
-export function Radio({ selected, name, value, label, onChange }) {
-  return (
-    <label className="text-sm font-medium text-gray-700">
-      <input
-        className="mr-2 shadow-sm sm:text-sm"
-        type="radio"
-        name={name}
-        value={value}
-        checked={selected === value}
-        onChange={onChange}
-      />
-      {label}
-    </label>
   );
 }
