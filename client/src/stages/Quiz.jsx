@@ -1,87 +1,104 @@
 import { usePlayer, useStage } from "@empirica/core/player/classic/react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../components/Button";
 
 const quizQuestions = [
   {
     id: 1,
-    question: "What is the Doppler Effect?",
-    type: "multiple-choice",
-    options: [
-      "The change in frequency of a wave when the source and observer are moving relative to each other",
-      "The bending of light waves around obstacles",
-      "The reflection of sound waves off surfaces",
-      "The absorption of energy by matter"
-    ],
-    correctAnswer: 0
+    title: "Test Question 1 of 6",
+    timerMinutes: 3,
+    prompt: "Explain how the Doppler Effect works.",
   },
   {
     id: 2,
-    question: "When a sound source moves toward you, what happens to the frequency you hear?",
-    type: "multiple-choice",
-    options: [
-      "It increases (pitch gets higher)",
-      "It decreases (pitch gets lower)",
-      "It stays the same",
-      "It becomes inaudible"
-    ],
-    correctAnswer: 0
+    title: "Test Question 2 of 6",
+    timerMinutes: 2,
+    prompt: "How could you increase the intensity of the Doppler Effect?",
   },
   {
     id: 3,
-    question: "When a sound source moves away from you, what happens to the frequency you hear?",
-    type: "multiple-choice",
-    options: [
-      "It increases (pitch gets higher)",
-      "It decreases (pitch gets lower)",
-      "It stays the same",
-      "It becomes louder"
-    ],
-    correctAnswer: 1
+    title: "Test Question 3 of 6",
+    timerMinutes: 2,
+    prompt: "Would the Doppler Effect occur if the source was stationary and the observer was moving? Why or why not?",
   },
   {
     id: 4,
-    question: "Which of the following is a real-world example of the Doppler Effect?",
-    type: "multiple-choice",
-    options: [
-      "A siren on an ambulance sounds higher as it approaches and lower as it moves away",
-      "Light bending when it passes through water",
-      "Echoes in a canyon",
-      "Sound getting louder when you're closer to the source"
-    ],
-    correctAnswer: 0
+    title: "Test Question 4 of 6",
+    timerMinutes: 2,
+    prompt: "What would happen to the Doppler Effect if the observer was moving at the same speed and in the same direction as the source? Explain your answer.",
   },
   {
     id: 5,
-    question: "The Doppler Effect applies to:",
-    type: "multiple-choice",
-    options: [
-      "Only sound waves",
-      "Only light waves",
-      "Both sound and light waves",
-      "Only electromagnetic waves"
-    ],
-    correctAnswer: 2
+    title: "Test Question 5 of 6",
+    timerMinutes: 2,
+    prompt: "How would an observer experience sound if the speed of the source were traveling faster than the speed of sound?",
   },
   {
     id: 6,
-    question: "In astronomy, the Doppler Effect is used to:",
-    type: "multiple-choice",
-    options: [
-      "Measure the temperature of stars",
-      "Determine if stars are moving toward or away from Earth",
-      "Calculate the age of the universe",
-      "Detect black holes"
-    ],
-    correctAnswer: 1
+    title: "Test Question 6 of 6",
+    timerMinutes: 2,
+    prompt: "What would happen to the Doppler Effect if the source and observer were both moving towards each other on a parallel path, at a constant speed? Explain your answer.",
   },
 ];
+
+function QuestionTimer({ minutes, onComplete }) {
+  const [secondsRemaining, setSecondsRemaining] = useState(minutes * 60);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    if (isComplete) return;
+
+    const interval = setInterval(() => {
+      setSecondsRemaining((prev) => {
+        if (prev <= 1) {
+          setIsComplete(true);
+          if (onComplete) onComplete();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isComplete, onComplete]);
+
+  const mins = Math.floor(secondsRemaining / 60);
+  const secs = secondsRemaining % 60;
+
+  if (isComplete) {
+    return (
+      <div className="text-red-600 font-semibold">
+        Time's up!
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-gray-600 font-medium">
+      Time remaining: {mins}:{secs.toString().padStart(2, "0")}
+    </div>
+  );
+}
 
 export function Quiz() {
   const player = usePlayer();
   const stage = useStage();
+  const [currentQuestion, setCurrentQuestion] = useState(1);
   const [answers, setAnswers] = useState({});
+  const [showTransition, setShowTransition] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [questionStartTimes, setQuestionStartTimes] = useState({});
+  const [questionEndTimes, setQuestionEndTimes] = useState({});
+
+  useEffect(() => {
+    // Record start time for current question
+    if (!questionStartTimes[currentQuestion]) {
+      setQuestionStartTimes((prev) => ({
+        ...prev,
+        [currentQuestion]: Date.now(),
+      }));
+    }
+  }, [currentQuestion, questionStartTimes]);
 
   const handleAnswerChange = (questionId, value) => {
     setAnswers((prev) => ({
@@ -90,45 +107,64 @@ export function Quiz() {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Calculate score
-    let correctCount = 0;
-    const answerDetails = {};
-    
+  const handleNextQuestion = () => {
+    // Record end time for current question
+    const endTime = Date.now();
+    const startTime = questionStartTimes[currentQuestion] || endTime;
+    const timeSpent = endTime - startTime;
+
+    // Save end time
+    setQuestionEndTimes((prev) => ({
+      ...prev,
+      [currentQuestion]: endTime,
+    }));
+
+    // Save answer and timing for current question
+    player.stage.set(`quizQ${currentQuestion}Answer`, answers[currentQuestion] || "");
+    player.stage.set(`quizQ${currentQuestion}TimeSpent`, timeSpent);
+    player.stage.set(`quizQ${currentQuestion}StartTime`, startTime);
+    player.stage.set(`quizQ${currentQuestion}EndTime`, endTime);
+
+    if (currentQuestion === quizQuestions.length) {
+      // Last question completed - show transition
+      setShowTransition(true);
+    } else {
+      // Move to next question
+      setCurrentQuestion(currentQuestion + 1);
+    }
+  };
+
+  const handleContinueAfterTransition = () => {
+    // Save all quiz data
+    const quizData = {
+      answers: {},
+      timings: {},
+    };
+
     quizQuestions.forEach((q) => {
-      const userAnswer = answers[q.id];
-      const isCorrect = userAnswer === q.correctAnswer;
-      answerDetails[q.id] = {
-        question: q.question,
-        userAnswer: userAnswer !== undefined ? q.options[userAnswer] : "Not answered",
-        correctAnswer: q.options[q.correctAnswer],
-        isCorrect: isCorrect
-      };
+      quizData.answers[q.id] = answers[q.id] || "";
+      const startTime = questionStartTimes[q.id] || Date.now();
+      const endTime = questionEndTimes[q.id] || Date.now();
+      const timeSpent = endTime - startTime;
       
-      if (isCorrect) {
-        correctCount++;
-      }
+      quizData.timings[q.id] = {
+        startTime,
+        endTime,
+        timeSpent,
+      };
     });
-    
-    const totalQuestions = quizQuestions.length;
-    const score = correctCount;
-    const scorePercentage = Math.round((correctCount / totalQuestions) * 100);
-    
-    // Save answers, score, and details to player stage
-    player.stage.set("quizAnswers", answers);
-    player.stage.set("quizScore", score);
-    player.stage.set("quizTotalQuestions", totalQuestions);
-    player.stage.set("quizScorePercentage", scorePercentage);
-    player.stage.set("quizAnswerDetails", answerDetails);
+
+    // Save to player stage
+    player.stage.set("quizAnswers", quizData.answers);
+    player.stage.set("quizTimings", quizData.timings);
+    player.stage.set("quizCompleted", true);
     player.stage.set("quizSubmitted", true);
-    
-    // Also save to player level for easy access
-    player.set("quizScore", score);
-    player.set("quizTotalQuestions", totalQuestions);
-    player.set("quizScorePercentage", scorePercentage);
-    
+
+    // Also save to player level
+    player.set("quizAnswers", quizData.answers);
+    player.set("quizTimings", quizData.timings);
+    player.set("quizCompleted", true);
+
     setSubmitted(true);
     player.stage.set("submit", true);
   };
@@ -150,55 +186,84 @@ export function Quiz() {
     );
   }
 
+  if (showTransition) {
+    return (
+      <div className="h-full w-full flex items-center justify-center">
+        <div className="max-w-4xl mx-auto p-8">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
+            <h2 className="text-2xl font-bold text-blue-800 mb-4">
+              *** TESTING SESSION COMPLETE ***
+            </h2>
+            <p className="text-lg text-blue-700 mb-6">
+              The comprehension test is finished.
+            </p>
+            <p className="text-lg text-blue-700 mb-8">
+              We will now collect your feedback regarding the experiment.
+            </p>
+            <Button handleClick={handleContinueAfterTransition}>
+              Continue to Survey
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const currentQ = quizQuestions[currentQuestion - 1];
+
   return (
     <div className="h-full w-full overflow-y-auto">
       <div className="max-w-4xl mx-auto p-8 pb-16">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          Comprehension Test: Doppler Effect
-        </h2>
-        <p className="text-sm text-gray-600 mb-6">
-          Please answer the following multiple-choice questions about the Doppler Effect. 
-          Select the best answer for each question.
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {quizQuestions.map((q) => (
-            <div key={q.id} className="border-b border-gray-200 pb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Question {q.id}: {q.question}
-              </label>
-              <div className="space-y-2">
-                {q.options.map((option, index) => (
-                  <label
-                    key={index}
-                    className={`flex items-start p-3 border rounded-lg cursor-pointer transition-colors ${
-                      answers[q.id] === index
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name={`question-${q.id}`}
-                      value={index}
-                      checked={answers[q.id] === index}
-                      onChange={() => handleAnswerChange(q.id, index)}
-                      className="mt-1 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
-                      required
-                    />
-                    <span className="text-sm text-gray-700 flex-1">{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
-
-          <div className="flex justify-end mt-8 mb-4">
-            <Button type="submit">
-              Submit Quiz
-            </Button>
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            {currentQ.title}
+          </h2>
+          <div className="mb-4">
+            <QuestionTimer
+              minutes={currentQ.timerMinutes}
+              onComplete={() => {
+                // Auto-advance when timer completes (optional)
+                // handleNextQuestion();
+              }}
+            />
           </div>
-        </form>
+          <p className="text-sm text-gray-600 mb-2">
+            Please set a timer for <strong>{currentQ.timerMinutes} minutes</strong>.
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Prompt: {currentQ.prompt}
+            </label>
+            <p className="text-xs text-gray-500 mb-3">
+              (Type your answer below. When finished, submit your text.)
+            </p>
+            <textarea
+              value={answers[currentQuestion] || ""}
+              onChange={(e) => handleAnswerChange(currentQuestion, e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm"
+              rows={8}
+              placeholder="Type your answer here..."
+            />
+          </div>
+
+          <div className="flex justify-end mt-6">
+            <button
+              type="button"
+              onClick={handleNextQuestion}
+              disabled={!answers[currentQuestion] || answers[currentQuestion].trim() === ""}
+              className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 border-transparent shadow-sm text-white bg-empirica-600 hover:bg-empirica-700 ${
+                (!answers[currentQuestion] || answers[currentQuestion].trim() === "") 
+                  ? "opacity-50 cursor-not-allowed" 
+                  : ""
+              }`}
+            >
+              {currentQuestion === quizQuestions.length ? "Finish Quiz" : "Next Question"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
