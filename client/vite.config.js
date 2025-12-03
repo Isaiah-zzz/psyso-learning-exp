@@ -18,8 +18,15 @@ export default defineConfig({
     exclude: ["@empirica/tajriba", "@empirica/core"],
   },
   server: {
+    port: 8844,
     open: false,
-    host: "0.0.0.0", // Allows access from other devices on your network
+    strictPort: true,
+    host: "0.0.0.0",
+    hmr: {
+      host: "localhost",
+      protocol: "ws",
+      port: 8844,
+    },
     fs: {
       allow: [
         // search up for workspace root
