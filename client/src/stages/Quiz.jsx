@@ -218,7 +218,7 @@ export function Quiz() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             {currentQ.title}
           </h2>
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <QuestionTimer
               minutes={currentQ.timerMinutes}
               onComplete={() => {
@@ -226,16 +226,13 @@ export function Quiz() {
                 // handleNextQuestion();
               }}
             />
-          </div>
-          <p className="text-sm text-gray-600 mb-2">
-            Please set a timer for <strong>{currentQ.timerMinutes} minutes</strong>.
-          </p>
+          </div> */}
         </div>
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Prompt: {currentQ.prompt}
+              Question: <strong>{currentQ.prompt}</strong>
             </label>
             <p className="text-xs text-gray-500 mb-3">
               (Type your answer below. When finished, submit your text.)
