@@ -20,7 +20,7 @@ Empirica.onGameStart(({ game }) => {
   }
   
   // Stage 3: Quiz (no time limit, but we'll set a reasonable duration)
-  round.addStage({ name: "Quiz", duration: 600 }); // 10 minutes for quiz
+  round.addStage({ name: "Quiz", duration: 780 }); // 13 minutes for quiz
 });
 
 Empirica.onRoundStart(({ round }) => {});
