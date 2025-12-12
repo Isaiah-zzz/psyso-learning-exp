@@ -69,7 +69,7 @@ Remember: Be a REAL teacher, not a perfect AI. Be natural, conversational, and h
     const prompt = systemPrompt + "\n\n" + conversationParts.map(p => p.text).join("\n\n") + "\n\nTutor:";
     
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`,
       {
         method: "POST",
         headers: {
